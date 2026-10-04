@@ -1,4 +1,5 @@
 from random import choice, randint
+
 import pygame
 
 # Константы для размеров поля и сетки:
@@ -54,6 +55,10 @@ class GameObject:
         self.body_color = body_color
 
     def draw(self, surface):
+        """
+        Отрисовывает объект на поверхности.
+        Должен быть переопределён в дочерних классах.
+        """
         pass
 
 
@@ -82,12 +87,18 @@ class BadFood(GameObject):
     """Класс, описывающий неправильную еду (уменьшает длину змейки)."""
 
     def __init__(self):
-        """Инициализирует неправильную еду: задаёт цвет и случайную позицию."""
+        """
+        Инициализирует объект.
+        :param position: кортеж (x, y) — позиция объекта. Если не задана, ставится в центр.
+        :param body_color: цвет объекта в формате RGB.
+        """
         super().__init__(body_color=BAD_FOOD_COLOR)
         self.randomize_position()
 
     def randomize_position(self):
-        """Устанавливает случайную позицию неправильной еды в пределах поля игры."""
+        """
+        Устанавливает случайную позицию неправильной еды в пределах поля игры.
+        """
         x = randint(0, GRID_WIDTH - 1) * GRID_SIZE
         y = randint(0, GRID_HEIGHT - 1) * GRID_SIZE
         self.position = (x, y)
@@ -228,7 +239,7 @@ def main():
         # Проверка столкновения с камнем
         if head == stone.position:
             snake.reset()
-            # При сбросе можно перегенерировать объекты, чтобы они не были в центре
+            # При сбросе можно перегенерировать объекты
             apple.randomize_position()
             bad_food.randomize_position()
             stone.randomize_position()
@@ -238,7 +249,7 @@ def main():
         if head == apple.position:
             snake.length += 1
             apple.randomize_position()
-            # Иногда генерируем новую плохую еду или камень, чтобы разнообразить игру
+            # Иногда генерируем новую плохую еду или камень
             if randint(1, 5) == 1:
                 bad_food.randomize_position()
             if randint(1, 7) == 1:
