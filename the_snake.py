@@ -1,5 +1,4 @@
 from random import choice, randint
-
 import pygame
 
 # Константы для размеров поля и сетки:
@@ -49,18 +48,12 @@ class GameObject:
     """Базовый класс для игровых объектов."""
 
     def __init__(self, position=None, body_color=None):
-        """
-        Инициализирует объект.
-        :param position: кортеж (x, y) — позиция объекта. Если не задана, ставится в центр.
-        :param body_color: цвет объекта в формате RGB.
-        """
         if position is None:
             position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
         self.position = position
         self.body_color = body_color
 
     def draw(self, surface):
-        """Отрисовывает объект на поверхности. Должен быть переопределён в дочерних классах."""
         pass
 
 
@@ -94,7 +87,7 @@ class BadFood(GameObject):
         self.randomize_position()
 
     def randomize_position(self):
-        """Устанавливает случайную позицию неправильной еды в пределах игрового поля."""
+        """Устанавливает случайную позицию неправильной еды в пределах поля игры."""
         x = randint(0, GRID_WIDTH - 1) * GRID_SIZE
         y = randint(0, GRID_HEIGHT - 1) * GRID_SIZE
         self.position = (x, y)
@@ -131,7 +124,7 @@ class Snake(GameObject):
     """Класс, описывающий змейку и её поведение."""
 
     def __init__(self):
-        """Инициализирует змейку: начальные позиции, направление, длину и т.д."""
+        """Инициализирует змейку"""
         start_pos = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
         super().__init__(position=start_pos, body_color=SNAKE_COLOR)
 
@@ -139,7 +132,8 @@ class Snake(GameObject):
         self.positions = [start_pos]
         self.direction = RIGHT
         self.next_direction = None
-        self.last = None  # Позиция последнего сегмента для затирания следа
+        # Позиция последнего сегмента для затирания следа
+        self.last = None
 
     def get_head_position(self):
         """Возвращает позицию головы змейки."""
