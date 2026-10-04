@@ -39,7 +39,7 @@ SPEED = 10
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
 
 # Заголовок окна игрового поля:
-pygame.display.set_caption("Змейка")
+pygame.display.set_caption('Змейка')
 
 # Настройка времени:
 clock = pygame.time.Clock()
@@ -89,16 +89,15 @@ class BadFood(GameObject):
     def __init__(self):
         """
         Инициализирует объект.
-        :param position: кортеж (x, y) — позиция объекта. Если не задана, ставится в центр.
+        :param position: кортеж (x, y) — позиция объекта.
+        Если не задана, ставится в центр.
         :param body_color: цвет объекта в формате RGB.
         """
         super().__init__(body_color=BAD_FOOD_COLOR)
         self.randomize_position()
 
     def randomize_position(self):
-        """
-        Устанавливает случайную позицию неправильной еды в пределах поля игры.
-        """
+        """Устанавливает случайную позицию яблока в пределах игрового поля."""
         x = randint(0, GRID_WIDTH - 1) * GRID_SIZE
         y = randint(0, GRID_HEIGHT - 1) * GRID_SIZE
         self.position = (x, y)
@@ -288,5 +287,5 @@ def main():
         pygame.display.update()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
