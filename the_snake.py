@@ -221,7 +221,6 @@ def main():
     """Основная функция игры."""
     pygame.init()
 
-    # Тут нужно создать экземпляры классов.
     snake = Snake()
     apple = Apple()
     bad_food = BadFood()
@@ -234,7 +233,6 @@ def main():
         snake.move()
 
         head = snake.get_head_position()
-        # Тут опишите основную логику игры.
         # Проверка столкновения с камнем
         if head == stone.position:
             snake.reset()
