@@ -1,6 +1,7 @@
-from random import choice, randint
-import pygame as pg
 import sys
+from random import choice, randint
+
+import pygame as pg
 
 # Константы для размеров поля и сетки.
 SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480
@@ -91,9 +92,9 @@ class GameObject:
         Должен быть переопределён в дочерних классах.
         """
         raise NotImplementedError(
-            f"Метод draw() не реализован в классе "
+            f'Метод draw() не реализован в классе '
             f"'{self.__class__.__name__}'. Обязательно переопределите "
-            f"его в наследнике."
+            f'его в наследнике.'
         )
 
 
@@ -238,10 +239,8 @@ def get_occupied(snake, *objects):
     return occupied
 
 
-def main():
-    """Основная функция игры."""
-    pg.init()
-
+def init_game():
+    """Создаёт игровые объекты и расставляет их на поле."""
     snake = Snake()
     occupied = snake.get_occupied_positions()
     apple = Apple(occupied_positions=occupied)
@@ -249,8 +248,73 @@ def main():
     bad_food = BadFood(occupied_positions=occupied)
     occupied.add(bad_food.position)
     stone = Stone(occupied_positions=occupied)
+    return snake, apple, bad_food, stone
 
-    # Первоначальная отрисовка.
+
+def reposition_objects(snake, apple, bad_food, stone):
+    """Перегенерирует позиции всех объектов после сброса змейки."""
+    occupied = snake.get_occupied_positions()
+    apple.randomize_position(occupied)
+    occupied.add(apple.position)
+    bad_food.randomize_position(occupied)
+    occupied.add(bad_food.position)
+    stone.randomize_position(occupied)
+
+
+def maybe_move_bad_food(bad_food, occupied):
+    """С вероятностью 1/5 перемещает плохую еду на новую позицию."""
+    if randint(1, 5) == 1:
+        old_pos = bad_food.position
+        bad_food.randomize_position(occupied)
+        if bad_food.position != old_pos:
+            GameObject.erase_cell(screen, old_pos)
+
+
+def maybe_move_stone(stone, occupied):
+    """С вероятностью 1/7 перемещает камень на новую позицию."""
+    if randint(1, 7) == 1:
+        old_pos = stone.position
+        stone.randomize_position(occupied)
+        if stone.position != old_pos:
+            GameObject.erase_cell(screen, old_pos)
+
+
+def handle_collisions(snake, apple, bad_food, stone):
+    """Проверяет столкновения и обновляет состояние.
+
+    Возвращает True, если нужен сброс змейки.
+    """
+    head = snake.get_head_position()
+
+    if head == stone.position:
+        return True
+
+    if head == apple.position:
+        snake.length += 1
+        occupied = get_occupied(snake, apple, bad_food, stone)
+        apple.randomize_position(occupied)
+        occupied = get_occupied(snake, apple, bad_food, stone)
+        maybe_move_bad_food(bad_food, occupied)
+        occupied = get_occupied(snake, apple, bad_food, stone)
+        maybe_move_stone(stone, occupied)
+        return False
+
+    if head == bad_food.position:
+        if snake.length > 1:
+            snake.reduce_length()
+            occupied = get_occupied(snake, apple, bad_food, stone)
+            bad_food.randomize_position(occupied)
+            return False
+        return True
+
+    if head in snake.positions[1:]:
+        return True
+
+    return False
+
+
+def full_redraw(snake, apple, bad_food, stone):
+    """Полная перерисовка экрана после сброса."""
     screen.fill(BOARD_BACKGROUND_COLOR)
     snake.draw(screen)
     apple.draw(screen)
@@ -258,75 +322,36 @@ def main():
     stone.draw(screen)
     pg.display.update()
 
+
+def draw_frame(snake, apple, bad_food, stone):
+    """Инкрементальная отрисовка: голова, хвост, еда, камень."""
+    snake.draw(screen)
+    apple.draw(screen)
+    bad_food.draw(screen)
+    stone.draw(screen)
+    pg.display.update()
+
+
+def main():
+    """Основная функция игры."""
+    pg.init()
+
+    snake, apple, bad_food, stone = init_game()
+    full_redraw(snake, apple, bad_food, stone)
+
     while True:
         clock.tick(SPEED)
         handle_keys(snake)
         snake.update_direction()
         snake.move()
 
-        head = snake.get_head_position()
-        occupied = get_occupied(snake, apple, bad_food, stone)
-
-        reset_needed = False
-
-        # Столкновение с камнем.
-        if head == stone.position:
-            reset_needed = True
-
-        # Съела яблоко.
-        elif head == apple.position:
-            snake.length += 1
-            occupied = get_occupied(snake, apple, bad_food, stone)
-            apple.randomize_position(occupied)
-            if randint(1, 5) == 1:
-                old_pos = bad_food.position
-                occupied = get_occupied(snake, apple, bad_food, stone)
-                bad_food.randomize_position(occupied)
-                if bad_food.position != old_pos:
-                    GameObject.erase_cell(screen, old_pos)
-            if randint(1, 7) == 1:
-                old_pos = stone.position
-                occupied = get_occupied(snake, apple, bad_food, stone)
-                stone.randomize_position(occupied)
-                if stone.position != old_pos:
-                    GameObject.erase_cell(screen, old_pos)
-
-        # Съела плохую еду.
-        elif head == bad_food.position:
-            if snake.length > 1:
-                snake.reduce_length()
-                occupied = get_occupied(snake, apple, bad_food, stone)
-                bad_food.randomize_position(occupied)
-            else:
-                reset_needed = True
-
-        # Столкновение с собой.
-        elif head in snake.positions[1:]:
-            reset_needed = True
-
-        # Сброс — полная перерисовка.
-        if reset_needed:
+        if handle_collisions(snake, apple, bad_food, stone):
             snake.reset()
-            occupied = snake.get_occupied_positions()
-            apple.randomize_position(occupied)
-            occupied.add(apple.position)
-            bad_food.randomize_position(occupied)
-            occupied.add(bad_food.position)
-            stone.randomize_position(occupied)
-            screen.fill(BOARD_BACKGROUND_COLOR)
-            snake.draw(screen)
-            apple.draw(screen)
-            bad_food.draw(screen)
-            stone.draw(screen)
-            pg.display.update()
+            reposition_objects(snake, apple, bad_food, stone)
+            full_redraw(snake, apple, bad_food, stone)
             continue
 
-        # Обычная отрисовка: голова и хвост.
-        snake.draw(screen)
-        apple.draw(screen)
-        bad_food.draw(screen)
-        stone.draw(screen)
-        pg.display.update()
+        draw_frame(snake, apple, bad_food, stone)
 
 
 if __name__ == '__main__':
