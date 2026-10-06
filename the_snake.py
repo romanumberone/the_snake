@@ -309,10 +309,7 @@ def handle_collisions(snake, apple, bad_food, stone):
         return needs_reset
 
     # Столкновение с собой — сброс
-    if head in snake.positions[1:]:
-        return True
-
-    return False
+    return head in snake.positions[1:]
 
 
 def full_redraw(snake, apple, bad_food, stone):
