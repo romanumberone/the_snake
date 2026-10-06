@@ -278,6 +278,7 @@ def maybe_move_stone(stone, occupied):
         if stone.position != old_pos:
             GameObject.erase_cell(screen, old_pos)
 
+
 def handle_collisions(snake, apple, bad_food, stone):
     """Проверяет столкновения и обновляет состояние.
 
@@ -295,25 +296,24 @@ def handle_collisions(snake, apple, bad_food, stone):
         snake.length += 1
         apple.randomize_position(occupied)
         maybe_move_bad_food(bad_food, occupied)
-        # Пересчитываем occupied после перемещений, чтобы не поставить еду на змею
         occupied = get_occupied(snake, apple, bad_food, stone)
         maybe_move_stone(stone, occupied)
         return False
 
     # Съела плохую еду
     if head == bad_food.position:
-        if snake.length > 1:
+        needs_reset = snake.length <= 1
+        if not needs_reset:
             snake.reduce_length()
             bad_food.randomize_position(occupied)
-            return False
-        # Если длина 1 — сброс
-        return True
+        return needs_reset
 
     # Столкновение с собой — сброс
     if head in snake.positions[1:]:
         return True
 
     return False
+
 
 def full_redraw(snake, apple, bad_food, stone):
     """Полная перерисовка экрана после сброса."""
